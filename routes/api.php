@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\BlogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,4 +24,8 @@ Route::middleware("auth:sanctum")->group(function (){
         return $request->user();
     });
     Route::post("/update-user", [UserController::class, "updateUser"]);
+    Route::post("/save-blog", [BlogController::class, "saveBlog"]);
+    Route::get("/create-blog", [BlogController::class, "createBlog"]);
+    Route::get("/delete-blog/{id}", [BlogController::class, "deleteBlog"]);
+    Route::get("/get-all-blogs", [BlogController::class, "getAllBlogs"]);
 });
