@@ -27,19 +27,33 @@ class BlogController extends Controller
             "subtitle" => "required|string"
         ]);
         $name = NULL;
-        Log::Info($request->content);
         $blog = Blog::where("id", $request->get("id"))->firstOrFail();
         if($request->file("cover")) {
             $image = $request->file('cover');
-            $name = "blog-cover-".$id."-".time().".".$image->getClientOriginalExtension();
-            \Image::make($image)->save(public_path('images/').$name);
+            $name = "blog-cover-".$validated["id"]."-".time().".".$image->getClientOriginalExtension();
+            \Image::make($image)->save(public_path('images/blog/cover/').$name);
         }
+        $content[] = [];
+        if($cn = $request->get("content")){
+            foreach ($cn as $i => $c) {
+                $content[$i] = $c;
+            }
+        }
+        if($imgs = $request->file("images")){
+            foreach ($imgs as $i => $img) {
+                Log::Info($img);
+                $name = "blog-image-".$validated["id"]."-".$i."-".time().".".$img->getClientOriginalExtension();
+                $content[$i] = $name;
+                \Image::make($img)->save(public_path("images/blog/images/").$name);
+            }
+        }
+        Log::Info($content);
       
          $blog->title = $validated["title"];
          $blog->subtitle = $validated["subtitle"];
          $blog->cover=$name;
          $blog->time_to_read = $request->time_to_read;
-         $blog->content = $request->content;
+         $blog->content = $content;
          $blog->save();
          return response()->json([
             "blog" => $blog
