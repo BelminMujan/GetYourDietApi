@@ -21,6 +21,7 @@ class BlogController extends Controller
     }
 
     public function saveBlog(Request $request) {
+        Log::Info($request);
         $validated = $request->validate([
             "id" => "required",
             "title" => "required|string",
@@ -33,17 +34,16 @@ class BlogController extends Controller
             $name = "blog-cover-".$validated["id"]."-".time().".".$image->getClientOriginalExtension();
             \Image::make($image)->save(public_path('images/blog/cover/').$name);
         }
-        $content[] = [];
+        $content = NULL;
         if($cn = $request->get("content")){
             foreach ($cn as $i => $c) {
-                $content[$i] = $c;
+                $content[$i] = ["type" => "content", 'value' => $c];
             }
         }
         if($imgs = $request->file("images")){
             foreach ($imgs as $i => $img) {
-                Log::Info($img);
                 $name = "blog-image-".$validated["id"]."-".$i."-".time().".".$img->getClientOriginalExtension();
-                $content[$i] = $name;
+                $content[$i] = ["type" => "image", "value" => $name];
                 \Image::make($img)->save(public_path("images/blog/images/").$name);
             }
         }
