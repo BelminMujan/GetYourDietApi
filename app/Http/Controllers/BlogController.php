@@ -22,48 +22,47 @@ class BlogController extends Controller
 
     public function saveBlog(Request $request) {
         Log::Info($request);
-        $validated = $request->validate([
-            "id" => "required",
-            "title" => "required|string",
-            "subtitle" => "required|string"
-        ]);
-        $name = NULL;
         $blog = Blog::where("id", $request->get("id"))->firstOrFail();
         if($request->file("cover")) {
             $image = $request->file('cover');
-            $name = "blog-cover-".$validated["id"]."-".time().".".$image->getClientOriginalExtension();
-            \Image::make($image)->save(public_path('images/blog/cover/').$name);
+            $c_name = "blog-cover-".$request->id."-".time().".".$image->getClientOriginalExtension();
+            \Image::make($image)->save(storage_path('app/public/images/blog/cover/').$c_name);
+            $blog->cover=@$c_name;
         }
         $content = NULL;
         if($cn = $request->get("content")){
             foreach ($cn as $i => $c) {
-                $content[$i] = ["type" => "content", 'value' => $c];
+                $content[intval($i)] = ["type" => "content", 'value' => $c];
             }
         }
         if($imgs = $request->file("images")){
             foreach ($imgs as $i => $img) {
-                $name = "blog-image-".$validated["id"]."-".$i."-".time().".".$img->getClientOriginalExtension();
-                $content[$i] = ["type" => "image", "value" => $name];
-                \Image::make($img)->save(public_path("images/blog/images/").$name);
+                $name = "blog-image-".$request->id."-".$i."-".time().".".$img->getClientOriginalExtension();
+                $content[intval($i)] = ["type" => "image", "value" => $name];
+                \Image::make($img)->save(storage_path("app/public/images/blog/images/").$name);
             }
         }
+        ksort($content);
         Log::Info($content);
-      
-         $blog->title = $validated["title"];
-         $blog->subtitle = $validated["subtitle"];
-         $blog->cover=$name;
-         $blog->time_to_read = $request->time_to_read;
-         $blog->content = $content;
-         $blog->save();
-         return response()->json([
-            "blog" => $blog
-         ], 200);
+        $blog->title = $request->title;
+        $blog->subtitle = $request->subtitle;
+        $blog->time_to_read = $request->time_to_read;
+        $blog->content = $content;
+        $blog->save();
+        return response()->json([
+        "blog" => $blog
+        ], 200);
     }
 
     public function getAllBlogs(Request $request){
-        $blogs = Blog::all();
+        $blogs = Blog::select('id','title','created_at')->get();
         return response()->json([
             "blogs" => $blogs
         ], 200);
+    }
+
+    public function getBlog(Request $request){
+        $blog = Blog::find(request()->id);
+        return response()->json($blog, 200);
     }
 }

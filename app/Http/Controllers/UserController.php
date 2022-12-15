@@ -52,7 +52,12 @@ class UserController extends Controller
 
     public function updateUser(Request $request){
         Log::Info($request);
-        $user = Auth::user();
+        $user = NULL;
+        if($request->get('account')){
+            $user = Auth::user();
+        } else {
+            $user = User::find($request->get('id'));
+        }
         if($request->has("first_name")){
             $v = $request->validate(["first_name" => "required|string|bail"]);
             $user->first_name = $v["first_name"];
@@ -61,7 +66,7 @@ class UserController extends Controller
             $v = $request->validate(["last_name" => "required|string|bail"]);
             $user->last_name = $v["last_name"];
         }
-        if($request->has("email")){
+        if($request->has("email") && $request->get("email") != $user->email){
             $v = $request->validate(["email" => "required|string|email|unique:users|bail"]);
             $user->email = $v["email"];
         }
@@ -73,6 +78,20 @@ class UserController extends Controller
         return response()->json([
             "message" => "Updated succesfully",
             "user" => $user,
+        ], 200);
+    }
+
+    public function deleteUser(Request $request){
+        User::destroy(request()->id);
+        return response()->json([
+            'message' => 'User was deleted successfully!'
+        ], 200);
+    }
+
+    public function getAllUsers(){
+        $data = User::where('role', '!=', 0)->get();
+        return response()->json([
+            'users' => $data
         ], 200);
     }
 }

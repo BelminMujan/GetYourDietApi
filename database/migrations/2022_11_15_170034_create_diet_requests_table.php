@@ -27,6 +27,7 @@ class CreateDietRequestsTable extends Migration
             $table->string('last_name');
             $table->string('gender');
             $table->date('dob');
+            $table->text('status');
             $table->string('create_account');
             $table->timestamps();
         });
